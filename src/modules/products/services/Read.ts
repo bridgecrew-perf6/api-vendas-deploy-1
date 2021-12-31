@@ -1,23 +1,15 @@
+import AppError from '@shared/errors/AppError';
 import { getCustomRepository } from 'typeorm';
 import Product from '../typeorm/entities/Product';
 import ProductsRepository from '../typeorm/repositories/ProductsRepository';
-import redisCache from '@shared/cache/RedisCache';
 
 class Read {
   public async execute(): Promise<Product[]> {
     const productsRepository = getCustomRepository(ProductsRepository);
-    //const productsRepository = getRepository(Product);
-
-    //const redisCache = new RedisCache();
-
-    let products = await redisCache.recover<Product[]>(
-      'api-vendas-PRODUCT_LIST',
-    );
+    const products = await productsRepository.find();
 
     if (!products) {
-      products = await productsRepository.find();
-
-      await redisCache.save('api-vendas-PRODUCT_LIST', products);
+      throw new AppError('Erro ao listar produtos', 400);
     }
 
     return products;
